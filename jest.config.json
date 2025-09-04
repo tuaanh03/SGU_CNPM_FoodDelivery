@@ -1,0 +1,7 @@
+
+  "preset": "env",
+
+  "extensionsToTreatAsEsm": [".js"],
+  "globals": {
+    "__DEV__": true
+  },

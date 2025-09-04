@@ -2,6 +2,10 @@ import { Hono } from "hono";
 import postgres from "postgres";
 import booksRouter from "./routes/books";
 import bookRelatedRouter from "./routes/book-related";
+import userRouter from "./routes/users";
+import productRouter from "./routes/products";
+import orderRouter from "./routes/orders";
+import paymentRouter from "./routes/payments";
 import { mockBooks } from "./lib/mockData";
 
 const app = new Hono();
@@ -42,6 +46,10 @@ app.use("*", async (c, next) => {
 
 app.route("/api/books", booksRouter);
 app.route("/api/books/:id/related", bookRelatedRouter);
+app.route("/api/users", userRouter);
+app.route("/api/products", productRouter);
+app.route("/api/orders", orderRouter);
+app.route("/api/payments", paymentRouter);
 
 // Catch-all route for static assets
 app.all("*", async (c) => {
