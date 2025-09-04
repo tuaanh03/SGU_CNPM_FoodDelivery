@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import orderRouter from "./orders.js";
 
 const paymentRouter = new Hono();
 
@@ -167,13 +168,14 @@ paymentRouter.put("/:id/status", async (c) => {
       return c.json({ error: "Payment not found" }, 404);
     }
 
-    // Nếu payment completed, cập nhật order status
+      // Nếu payment completed, gọi Order service để cập nhật trạng thái đơn hàng
     if (payment_status === "completed") {
-      await c.env.SQL`
-        UPDATE orders 
-        SET status = 'processing', updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${payment.order_id}
-      `;
+        const orderReq = new Request(`http://internal/${payment.order_id}/status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "processing" })
+        });
+        await orderRouter.request(orderReq, c.env);
     }
 
     return c.json({ payment });
@@ -212,18 +214,19 @@ paymentRouter.post("/:id/refund", async (c) => {
 
     // Cập nhật payment status thành refunded
     const [updatedPayment] = await c.env.SQL`
-      UPDATE payments 
+    UPDATE payments
       SET payment_status = 'refunded', updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING id, order_id, amount, payment_method, payment_status, transaction_id, created_at, updated_at
     `;
 
-    // Cập nhật order status thành cancelled
-    await c.env.SQL`
-      UPDATE orders 
-      SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${payment.order_id}
-    `;
+      // Cập nhật order status thành cancelled thông qua Order service
+      const cancelReq = new Request(`http://internal/${payment.order_id}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "cancelled" })
+      });
+      await orderRouter.request(cancelReq, c.env);
 
     // Hoàn trả stock cho các products
     const items = await c.env.SQL`

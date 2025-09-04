@@ -1,9 +1,9 @@
 // Simple test runner for API endpoints
 import { Hono } from 'hono';
-import userRouter from '../api/routes/users.js';
-import productRouter from '../api/routes/products.js';
-import orderRouter from '../api/routes/orders.js';
-import paymentRouter from '../api/routes/payments.js';
+import userRouter from './api/routes/users.js';
+import productRouter from './api/routes/products.js';
+import orderRouter from './api/routes/orders.js';
+import paymentRouter from './api/routes/payments.js';
 
 const app = new Hono();
 app.route('/api/users', userRouter);
@@ -15,6 +15,9 @@ const mockEnv = {
   DB_AVAILABLE: false,
   SQL: null
 };
+
+// helper to send request with mock environment
+const send = (req) => app.request(req, undefined, mockEnv);
 
 async function runTests() {
   console.log('🧪 Starting API Tests...\n');
@@ -39,7 +42,7 @@ async function runTests() {
 
   await test('GET /api/users - should return users', async () => {
     const req = new Request('http://localhost/api/users');
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
     if (!Array.isArray(data.users)) throw new Error('Expected users array');
@@ -52,7 +55,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 201) throw new Error(`Expected 201, got ${res.status}`);
     if (data.user.email !== userData.email) throw new Error('User email mismatch');
@@ -65,7 +68,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     if (res.status !== 400) throw new Error(`Expected 400, got ${res.status}`);
   });
 
@@ -74,7 +77,7 @@ async function runTests() {
 
   await test('GET /api/products - should return products', async () => {
     const req = new Request('http://localhost/api/products');
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
     if (!Array.isArray(data.products)) throw new Error('Expected products array');
@@ -100,7 +103,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(productData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     if (res.status !== 400) throw new Error(`Expected 400, got ${res.status}`);
   });
 
@@ -109,7 +112,7 @@ async function runTests() {
 
   await test('GET /api/orders - should return orders', async () => {
     const req = new Request('http://localhost/api/orders');
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
     if (!Array.isArray(data.orders)) throw new Error('Expected orders array');
@@ -126,7 +129,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 201) throw new Error(`Expected 201, got ${res.status}`);
     if (data.order.user_id !== orderData.user_id) throw new Error('Order user_id mismatch');
@@ -139,7 +142,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     if (res.status !== 400) throw new Error(`Expected 400, got ${res.status}`);
   });
 
@@ -148,7 +151,7 @@ async function runTests() {
 
   await test('GET /api/payments - should return payments', async () => {
     const req = new Request('http://localhost/api/payments');
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
     if (!Array.isArray(data.payments)) throw new Error('Expected payments array');
@@ -161,7 +164,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     const data = await res.json();
     if (res.status !== 201) throw new Error(`Expected 201, got ${res.status}`);
     if (data.payment.order_id !== paymentData.order_id) throw new Error('Payment order_id mismatch');
@@ -174,7 +177,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData)
     });
-    const res = await app.request(req, mockEnv);
+      const res = await send(req);
     if (res.status !== 400) throw new Error(`Expected 400, got ${res.status}`);
   });
 
@@ -189,7 +192,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
     });
-    const userRes = await app.request(userReq, mockEnv);
+      const userRes = await send(userReq);
     const userDataRes = await userRes.json();
     const userId = userDataRes.user.id;
 
@@ -200,7 +203,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(productData)
     });
-    const productRes = await app.request(productReq, mockEnv);
+      const productRes = await send(productReq);
     const productDataRes = await productRes.json();
     const productId = productDataRes.product.id;
 
@@ -214,7 +217,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
-    const orderRes = await app.request(orderReq, mockEnv);
+      const orderRes = await send(orderReq);
     const orderDataRes = await orderRes.json();
     const orderId = orderDataRes.order.id;
 
@@ -225,7 +228,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData)
     });
-    const paymentRes = await app.request(paymentReq, mockEnv);
+      const paymentRes = await send(paymentReq);
 
     if (paymentRes.status !== 201) throw new Error('Workflow failed at payment step');
   });
