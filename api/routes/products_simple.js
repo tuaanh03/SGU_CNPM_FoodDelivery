@@ -22,6 +22,7 @@ productRouter.get("/", async (c) => {
       return c.json({ products: filteredProducts });
     }
 
+    // Database query would go here
     const products = [];
     return c.json({ products });
   } catch (error) {
@@ -38,26 +39,12 @@ productRouter.get("/:id", async (c) => {
     if (!c.env?.DB_AVAILABLE) {
       const mockProduct = mockProducts.find(product => product.id === id);
       if (!mockProduct) {
-        if (id > 100) {
-          const dynamicMockProduct = {
-            id: id,
-            name: `Product ${id}`,
-            description: `Description for Product ${id}`,
-            price: 29.99,
-            category: "electronics",
-            stock_quantity: 10,
-            image_url: null,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          return c.json({ product: dynamicMockProduct });
-        }
         return c.json({ error: "Product not found" }, 404);
       }
       return c.json({ product: mockProduct });
     }
 
+    // Database query would go here
     return c.json({ error: "Product not found" }, 404);
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -98,6 +85,7 @@ productRouter.post("/", async (c) => {
       }, 201);
     }
 
+    // Database insert would go here
     return c.json({ error: "Failed to create product" }, 500);
   } catch (error) {
     console.error("Error creating product:", error);
@@ -131,6 +119,7 @@ productRouter.put("/:id", async (c) => {
       });
     }
 
+    // Database update would go here
     return c.json({ error: "Product not found" }, 404);
   } catch (error) {
     console.error("Error updating product:", error);
@@ -145,41 +134,33 @@ productRouter.put("/:id/stock", async (c) => {
   try {
     const { quantity } = await c.req.json();
 
-    if (quantity === undefined || quantity < 0) {
+    if (quantity === undefined || quantity < 0 || !Number.isInteger(quantity)) {
       return c.json({ error: "Valid quantity is required" }, 400);
     }
 
     if (!c.env?.DB_AVAILABLE) {
       const productIndex = mockProducts.findIndex(product => product.id === id);
       if (productIndex === -1) {
-        const dynamicMockProduct = {
-          id: id,
-          name: `Product ${id}`,
-          description: `Description for Product ${id}`,
-          price: 29.99,
-          category: "electronics",
-          stock_quantity: parseInt(quantity),
-          image_url: null,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        return c.json({ product: dynamicMockProduct });
+        return c.json({ error: "Product not found" }, 404);
       }
 
       const updatedProduct = {
         ...mockProducts[productIndex],
-        stock_quantity: parseInt(quantity),
+        stock_quantity: quantity,
         updated_at: new Date().toISOString()
       };
 
-      return c.json({ product: updatedProduct });
+      return c.json({
+        message: "Stock quantity updated successfully",
+        product: updatedProduct
+      });
     }
 
+    // Database update would go here
     return c.json({ error: "Product not found" }, 404);
   } catch (error) {
-    console.error("Error updating product stock:", error);
-    return c.json({ error: "Failed to update product stock" }, 500);
+    console.error("Error updating stock:", error);
+    return c.json({ error: "Failed to update stock" }, 500);
   }
 });
 
@@ -197,6 +178,7 @@ productRouter.delete("/:id", async (c) => {
       return c.json({ message: "Product deleted successfully" });
     }
 
+    // Database delete would go here
     return c.json({ error: "Product not found" }, 404);
   } catch (error) {
     console.error("Error deleting product:", error);

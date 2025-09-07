@@ -1,4 +1,95 @@
 // Mock data for when database connection is unavailable
+
+export const mockUsers = [
+  {
+    id: 1,
+    email: "user1@example.com",
+    name: "John Doe",
+    phone: "0123456789",
+    address: "123 Main St",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    email: "user2@example.com",
+    name: "Jane Smith",
+    phone: "0987654321",
+    address: "456 Oak Ave",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const mockProducts = [
+  {
+    id: 1,
+    name: "Product 1",
+    description: "Description 1",
+    price: 29.99,
+    category: "electronics",
+    stock_quantity: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    name: "Product 2",
+    description: "Description 2",
+    price: 19.99,
+    category: "books",
+    stock_quantity: 50,
+    is_active: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const mockOrders = [
+  {
+    id: 1,
+    user_id: 1,
+    total_amount: 99.98,
+    status: "pending",
+    shipping_address: "123 Main St",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    user_id: 2,
+    total_amount: 149.99,
+    status: "completed",
+    shipping_address: "456 Oak Ave",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const mockPayments = [
+  {
+    id: 1,
+    order_id: 1,
+    amount: 99.98,
+    payment_method: "credit_card",
+    payment_status: "completed",
+    transaction_id: "txn_123",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    order_id: 2,
+    amount: 149.99,
+    payment_method: "paypal",
+    payment_status: "pending",
+    transaction_id: "txn_456",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
 export const mockBooks = [
   {
     id: 1,
@@ -43,60 +134,5 @@ export const mockBooks = [
     genre: "Literary Fiction",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  },
-  {
-    id: 5,
-    title: "Anna Karenina",
-    author: "Leo Tolstoy",
-    description:
-      "A complex novel of family life among the Russian aristocracy, focusing on an adulterous affair between Anna Karenina and Count Vronsky.",
-    image_url: "/images/books/anna-karenina.jpg",
-    genre: "Literary Fiction",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 6,
-    title: "Giovanni's Room",
-    author: "James Baldwin",
-    description:
-      "A groundbreaking novel that follows an American man living in Paris as he grapples with his sexual identity and relationships.",
-    image_url: "/images/books/giovannis-room.jpg",
-    genre: "Historical Fiction",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 7,
-    title: "My Brilliant Friend",
-    author: "Elena Ferrante",
-    description:
-      "The first novel in the Neapolitan quartet that traces the friendship between Elena and Lila, from their childhood in a poor Naples neighborhood through their diverging paths in life.",
-    image_url: "/images/books/my-brilliant-friend.jpg",
-    genre: "Literary Fiction",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 8,
-    title: "The Remains of the Day",
-    author: "Kazuo Ishiguro",
-    description:
-      "The story of an English butler reflecting on his life of service and missed opportunities as he takes a road trip through the countryside.",
-    image_url: "/images/books/remains-of-the-day.jpg",
-    genre: "Historical Fiction",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 9,
-    title: "The Left Hand of Darkness",
-    author: "Ursula K. Le Guin",
-    description:
-      "A science fiction novel that follows an envoy sent to convince the ambisexual people of the planet Gethen to join an interplanetary collective.",
-    image_url: "/images/books/left-hand-of-darkness.jpg",
-    genre: "Science Fiction & Fantasy",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
+  }
 ];
