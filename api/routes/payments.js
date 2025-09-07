@@ -76,14 +76,11 @@ paymentRouter.post("/", async (c) => {
     }
 
     if (!c.env?.DB_AVAILABLE) {
-      if (order_id === 1) {
-        return c.json({ error: "Payment already exists for this order" }, 409);
-      }
-
       if (order_id === 999) {
         return c.json({ error: "Order not found" }, 404);
       }
 
+      // Mock data - luôn cho phép tạo payment mới
       const mockPayment = {
         id: Date.now(),
         order_id,
@@ -96,7 +93,33 @@ paymentRouter.post("/", async (c) => {
       return c.json({ payment: mockPayment }, 201);
     }
 
-    return c.json({ error: "Failed to create payment" }, 500);
+    // Database logic - kiểm tra order tồn tại
+    const orderResult = await c.env.SQL`
+      SELECT id, total_amount, status FROM orders WHERE id = ${order_id}
+    `;
+
+    if (!orderResult || orderResult.length === 0) {
+      return c.json({ error: "Order not found" }, 404);
+    }
+
+    const [order] = orderResult;
+
+    // Kiểm tra xem order đã có payment chưa
+    const existingPaymentResult = await c.env.SQL`
+      SELECT id FROM payments WHERE order_id = ${order_id}
+    `;
+
+    if (existingPaymentResult && existingPaymentResult.length > 0) {
+      return c.json({ error: "Payment already exists for this order" }, 409);
+    }
+
+    const [payment] = await c.env.SQL`
+      INSERT INTO payments (order_id, amount, payment_method, transaction_id)
+      VALUES (${order_id}, ${order.total_amount}, ${payment_method}, ${transaction_id || `txn_${Date.now()}`})
+      RETURNING id, order_id, amount, payment_method, payment_status, transaction_id, created_at, updated_at
+    `;
+
+    return c.json({ payment }, 201);
   } catch (error) {
     console.error("Error creating payment:", error);
     return c.json({ error: "Failed to create payment" }, 500);
@@ -148,7 +171,33 @@ paymentRouter.post("/:id/refund", async (c) => {
       });
     }
 
-    return c.json({ error: "Payment not found" }, 404);
+    // Database logic - kiểm tra payment tồn tại và status
+    const paymentResult = await c.env.SQL`
+      SELECT id, order_id, payment_status FROM payments WHERE id = ${id}
+    `;
+
+    if (!paymentResult || paymentResult.length === 0) {
+      return c.json({ error: "Payment not found" }, 404);
+    }
+
+    const [payment] = paymentResult;
+
+    if (payment.payment_status !== "completed") {
+      return c.json({ error: "Can only refund completed payments" }, 400);
+    }
+
+    // Cập nhật payment status thành refunded
+    const [updatedPayment] = await c.env.SQL`
+      UPDATE payments
+      SET payment_status = 'refunded', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING id, order_id, amount, payment_method, payment_status, transaction_id, created_at, updated_at
+    `;
+
+    return c.json({
+      payment: updatedPayment,
+      message: "Refund processed successfully"
+    });
   } catch (error) {
     console.error("Error processing refund:", error);
     return c.json({ error: "Failed to process refund" }, 500);

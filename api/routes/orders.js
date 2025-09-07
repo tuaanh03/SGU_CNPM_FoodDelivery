@@ -40,7 +40,6 @@ orderRouter.get("/:id", async (c) => {
       const mockOrder = mockOrders.find(order => order.id === id);
       if (!mockOrder) {
         // Chỉ tạo dynamic mock order cho integration test với ID cụ thể
-        // Các test khác sẽ nhận 404 như mong đợi
         if (id > 100) { // Integration test sử dụng ID lớn
           const dynamicMockOrder = {
             id: id,
@@ -72,8 +71,8 @@ orderRouter.get("/:id", async (c) => {
       return c.json({ order: orderWithItems });
     }
 
-    // Database logic
-    const [order] = await c.env.SQL`
+    // Database logic - kiểm tra kết quả từ SQL query
+    const orderResult = await c.env.SQL`
       SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at, o.updated_at,
              u.name as user_name, u.email as user_email
       FROM orders o
@@ -81,9 +80,12 @@ orderRouter.get("/:id", async (c) => {
       WHERE o.id = ${id}
     `;
 
-    if (!order) {
+    // Kiểm tra nếu không có kết quả từ database
+    if (!orderResult || orderResult.length === 0) {
       return c.json({ error: "Order not found" }, 404);
     }
+
+    const [order] = orderResult;
 
     // Get order items
     const items = await c.env.SQL`
@@ -95,7 +97,7 @@ orderRouter.get("/:id", async (c) => {
 
     const orderWithItems = {
       ...order,
-      items: items
+      items: items || []
     };
 
     return c.json({ order: orderWithItems });
@@ -234,14 +236,17 @@ orderRouter.delete("/:id", async (c) => {
       return c.json({ message: "Order cancelled successfully" });
     }
 
-    // Database logic would go here
-    const [order] = await c.env.SQL`
-      SELECT status FROM orders WHERE id = ${id}
+    // Database logic - kiểm tra order tồn tại và status
+    const orderResult = await c.env.SQL`
+      SELECT id, status FROM orders WHERE id = ${id}
     `;
 
-    if (!order) {
+    // Kiểm tra nếu không có kết quả từ database
+    if (!orderResult || orderResult.length === 0) {
       return c.json({ error: "Order not found" }, 404);
     }
+
+    const [order] = orderResult;
 
     if (order.status !== "pending") {
       return c.json({ error: "Can only cancel pending orders" }, 400);
