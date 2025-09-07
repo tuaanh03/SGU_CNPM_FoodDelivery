@@ -7,7 +7,7 @@ productRouter.get("/", async (c) => {
   try {
     const { category, active } = c.req.query();
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({
         products: [
           { id: 1, name: "Product 1", description: "Description 1", price: 29.99, category: "electronics", stock_quantity: 100, is_active: true },
@@ -45,7 +45,7 @@ productRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockProduct = { id: parseInt(id), name: "Mock Product", description: "Mock Description", price: 29.99, category: "electronics", stock_quantity: 100, is_active: true };
       return c.json({ product: mockProduct });
     }
@@ -80,7 +80,7 @@ productRouter.post("/", async (c) => {
       return c.json({ error: "Price must be greater than 0" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockProduct = {
         id: Date.now(),
         name,
@@ -123,7 +123,7 @@ productRouter.put("/:id", async (c) => {
       return c.json({ error: "Price must be greater than 0" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockProduct = {
         id: parseInt(id),
         name,
@@ -164,7 +164,7 @@ productRouter.delete("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({ message: "Product deleted successfully" });
     }
 
@@ -194,7 +194,7 @@ productRouter.put("/:id/stock", async (c) => {
       return c.json({ error: "Valid quantity is required" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockProduct = { id: parseInt(id), stock_quantity: quantity, updated_at: new Date() };
       return c.json({ product: mockProduct });
     }

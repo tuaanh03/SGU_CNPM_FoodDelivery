@@ -1,7 +1,5 @@
 {
-  "preset": "env",
-
-  "extensionsToTreatAsEsm": [".js"],
+  "testEnvironment": "node",
   "globals": {
     "__DEV__": true
   }

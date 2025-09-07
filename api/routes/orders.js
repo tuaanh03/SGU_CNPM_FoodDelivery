@@ -7,7 +7,7 @@ orderRouter.get("/", async (c) => {
   try {
     const { user_id, status } = c.req.query();
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({
         orders: [
           { id: 1, user_id: 1, total_amount: 99.98, status: "pending", shipping_address: "123 Main St", created_at: new Date() },
@@ -47,7 +47,7 @@ orderRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockOrder = {
         id: parseInt(id),
         user_id: 1,
@@ -109,7 +109,7 @@ orderRouter.post("/", async (c) => {
       }
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const total_amount = items.reduce((sum, item) => sum + (item.price || 29.99) * item.quantity, 0);
       const mockOrder = {
         id: Date.now(),
@@ -208,7 +208,7 @@ orderRouter.put("/:id/status", async (c) => {
       return c.json({ error: "Valid status is required (pending, processing, shipped, delivered, cancelled)" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockOrder = { id: parseInt(id), status, updated_at: new Date() };
       return c.json({ order: mockOrder });
     }
@@ -236,7 +236,7 @@ orderRouter.delete("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({ message: "Order cancelled successfully" });
     }
 

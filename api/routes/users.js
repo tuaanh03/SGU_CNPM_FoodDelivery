@@ -6,7 +6,7 @@ const userRouter = new Hono();
 // GET /api/users - Lấy danh sách users
 userRouter.get("/", async (c) => {
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({
         users: [
           { id: 1, email: "user1@example.com", name: "John Doe", phone: "0123456789", address: "123 Main St" },
@@ -33,7 +33,7 @@ userRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockUser = { id: parseInt(id), email: "user@example.com", name: "Mock User", phone: "0123456789", address: "123 Mock St" };
       return c.json({ user: mockUser });
     }
@@ -64,7 +64,7 @@ userRouter.post("/", async (c) => {
       return c.json({ error: "Email, name, and password are required" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockUser = { id: Date.now(), email, name, phone, address, created_at: new Date() };
       return c.json({ user: mockUser }, 201);
     }
@@ -98,7 +98,7 @@ userRouter.put("/:id", async (c) => {
       return c.json({ error: "Name is required" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockUser = { id: parseInt(id), email: "user@example.com", name, phone, address, updated_at: new Date() };
       return c.json({ user: mockUser });
     }
@@ -126,7 +126,7 @@ userRouter.delete("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({ message: "User deleted successfully" });
     }
 

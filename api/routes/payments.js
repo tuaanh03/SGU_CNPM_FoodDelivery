@@ -8,7 +8,7 @@ paymentRouter.get("/", async (c) => {
   try {
     const { order_id, status } = c.req.query();
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({
         payments: [
           { id: 1, order_id: 1, amount: 99.98, payment_method: "credit_card", payment_status: "completed", transaction_id: "txn_123", created_at: new Date() },
@@ -49,7 +49,7 @@ paymentRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
 
   try {
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockPayment = {
         id: parseInt(id),
         order_id: 1,
@@ -96,7 +96,7 @@ paymentRouter.post("/", async (c) => {
       return c.json({ error: "Invalid payment method" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockPayment = {
         id: Date.now(),
         order_id,
@@ -152,7 +152,7 @@ paymentRouter.put("/:id/status", async (c) => {
       return c.json({ error: "Valid payment status is required (pending, processing, completed, failed, refunded)" }, 400);
     }
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       const mockPayment = { id: parseInt(id), payment_status, updated_at: new Date() };
       return c.json({ payment: mockPayment });
     }
@@ -192,7 +192,7 @@ paymentRouter.post("/:id/refund", async (c) => {
   try {
     const { reason } = await c.req.json();
 
-    if (!c.env.DB_AVAILABLE) {
+    if (!c.env?.DB_AVAILABLE) {
       return c.json({
         payment: { id: parseInt(id), payment_status: "refunded", updated_at: new Date() },
         message: "Refund processed successfully"

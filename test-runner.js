@@ -90,7 +90,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(productData)
     });
-    const res = await app.request(req, mockEnv);
+    const res = await send(req);
     const data = await res.json();
     if (res.status !== 201) throw new Error(`Expected 201, got ${res.status}`);
     if (data.product.name !== productData.name) throw new Error('Product name mismatch');
