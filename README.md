@@ -1,156 +1,210 @@
-# React + Vite + PostgreSQL + Hyperdrive on Cloudflare Workers
+# E-commerce Microservices Architecture
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/react-postgres-fullstack-template)
+## 🏗️ Tổng quan
+Hệ thống thương mại điện tử được thiết kế theo kiến trúc microservices với 4 services độc lập, mỗi service có database riêng và giao tiếp qua API Gateway.
 
-![Build a library of books using Cloudflare Workes Assets, Hono, and Hyperdrive](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/cd71c67a-253f-477d-022c-2f90cb4b3d00/public)
+## 🎯 Kiến trúc Services
 
-<!-- dash-content-start -->
+### 🔧 Services Overview
+- **👤 User Service** (Port 3001): Quản lý người dùng và xác thực
+- **📦 Product Service** (Port 3002): Quản lý sản phẩm và inventory với stock reservation
+- **💳 Payment Service** (Port 3003): Xử lý thanh toán với authorize/capture pattern  
+- **📋 Order Service** (Port 3004): Orchestrate luồng nghiệp vụ sử dụng Saga pattern
+- **🌐 API Gateway** (Port 3000): Điều phối requests, load balancing, rate limiting
 
-Build a library of books using [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/), Hono API routes, and [Cloudflare Hyperdrive](https://developers.cloudflare.com/hyperdrive/) to connect to a PostgreSQL database. [Workers Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement/) is enabled to automatically position your Worker closer to your database for reduced latency.
-
-Browse a categorized collection of books in this application. To learn more about a title, click on it to navigate to an expanded view. The collection can also be filtered by genre. If a custom database connection is not provided, a fallback set of books will be used.
-
-If creating a personal database, books are expected to be stored in the following format:
-
-```sql
-(INDEX, 'BOOK_TITLE', 'BOOK_AUTHOR', 'BOOK_DESCRIPTION', '/images/books/BOOK_COVER_IMAGE.jpg', 'BOOK_GENRE')
+### 🔄 Luồng nghiệp vụ (Order Saga Pattern)
+```
+Validate User → Reserve Stock → Authorize Payment → 
+Capture Payment → Commit Stock → Confirm Order
 ```
 
-## Features
+**🔧 Compensation (Auto Rollback):**
+- Release stock reservations
+- Cancel/refund payments  
+- Update order status thành failed
 
-- 📖 Dynamic routes
-- 📦 Asset bundling and optimization
-- 🌐 Optimized Worker placement
-- 🚀 Database connection via Hyperdrive
-- 🎉 TailwindCSS for styling
-- 🐳 Docker for container management
+## 🚀 Cài đặt và Chạy
 
-## Smart Placement Benefits
+### Prerequisites
+```bash
+npm install
+```
 
-This application uses Cloudflare Workers' [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement/) feature to optimize performance.
+### Chạy Services
 
-- **What is Smart Placement?** Smart Placement [can dynamically position](https://developers.cloudflare.com/workers/configuration/smart-placement/#understand-how-smart-placement-works) your Worker in Cloudflare's network to minimize latency between your Worker and database.
+**Chạy tất cả services cùng lúc:**
+```bash
+npm run start:all
+```
 
-- **How does it work?** The application makes multiple database round trips per request. Smart Placement analyzes this traffic pattern and can choose to position the Worker and Hyperdrive closer to your deployed database to reduce latency. This can significantly improve response times, especially for read-intensive operations requiring multiple database queries — as demonstrated in this application's book-related API endpoints.
+**Hoặc chạy từng service riêng biệt:**
+```bash
+npm run start:user      # User Service (3001)
+npm run start:product   # Product Service (3002)  
+npm run start:payment   # Payment Service (3003)
+npm run start:order     # Order Service (3004)
+npm run start:gateway   # API Gateway (3000)
+```
 
-- **No configuration needed:** Smart Placement works automatically when enabled in `wrangler.jsonc` with `"mode": "smart"`.
+## 🧪 Testing
 
-<!-- dash-content-end -->
+### Chạy Tests
+```bash
+npm test              # Tất cả tests
+npm run test:coverage # Coverage report
+npm run test:user     # User Service tests
+npm run test:product  # Product Service tests
+npm run test:payment  # Payment Service tests
+npm run test:order    # Order Service tests  
+npm run test:contract # Contract tests
+```
 
-## Tech Stack
+### ✅ Test Coverage
+- **Unit Tests**: Logic nội bộ từng service
+- **Integration Tests**: API Gateway routing
+- **Contract Tests**: Giao tiếp giữa services
+- **Scenario Tests**: Success, failures, edge cases
 
-- **Frontend**: React + React Router for client-side navigation [using declarative routing](https://reactrouter.com/en/main/start/overview)
-  - Built with Vite and deployed as static assets via Workers
-  - React SPA mode enabled in `wrangler.jsonc` for client-side navigation
+**Test Scenarios bao gồm:**
+- ✅ Đặt hàng thành công
+- ❌ Hết stock
+- ❌ Payment authorization failed
+- ❌ Payment capture failed
+- ❌ User không hợp lệ
+- ⏱️ Network timeouts
+- 🚫 Service unavailable
 
-- **Backend**: API routes served by a Worker using [Hono](https://hono.dev/)
-  - API endpoints defined in `/api/routes` directory
-  - Automatic fallback to mock data when database is unavailable
+## 📡 API Documentation
 
-- **Database**: PostgreSQL database connected via Cloudflare Hyperdrive
-  - Smart Placement enabled for optimal performance
-  - Handles missing connection strings or connection failures
+### Health Check
+```bash
+GET http://localhost:3000/health
+```
 
-## Get Started
+### User APIs
+```bash
+POST /api/users              # Tạo user
+GET  /api/users/:id           # Lấy user
+PUT  /api/users/:id           # Cập nhật user
+POST /api/users/validate      # Validate user (internal)
+```
 
-To run the applicaton locally, use the Docker container defined in `docker-compose.yml`:
+### Product APIs  
+```bash
+POST /api/products            # Tạo sản phẩm
+GET  /api/products/:id        # Lấy sản phẩm
+POST /api/products/reserve    # Reserve stock
+POST /api/products/commit     # Commit stock
+POST /api/products/release    # Release stock
+```
 
-1. `docker-compose up -d`
-   - Creates container with PostgreSQL and seeds it with the data found in `init.sql`
-2. `npm run dev`
+### Payment APIs
+```bash
+POST /api/payments/authorize  # Ủy quyền thanh toán
+POST /api/payments/capture    # Thu tiền
+POST /api/payments/cancel     # Hủy thanh toán
+GET  /api/payments/:id        # Thông tin payment
+```
 
-If you update `init.sql`, be sure to run `docker-compose down -v` to teardown the previous image.
+### Order APIs
+```bash
+POST /api/orders              # Tạo đơn hàng (khởi động saga)
+GET  /api/orders/:id          # Thông tin đơn hàng
+GET  /api/orders/user/:userId # Đơn hàng theo user
+PUT  /api/orders/:id/cancel   # Hủy đơn hàng
+```
 
-### Setting Up Hyperdrive Bindings
+## 💡 Ví dụ sử dụng
 
-Cloudflare's Hyperdrive is database connector that optimizes queries from your Workers to various database providers using a connection string. Here's a detailed explanation of how to set it up:
+### Tạo đơn hàng thành công:
+```bash
+# 1. Tạo user
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "customer@example.com",
+    "name": "Nguyễn Văn A", 
+    "password": "password123",
+    "phone": "0123456789",
+    "address": "123 Đường ABC, TP.HCM"
+  }'
 
-1. **Create a Hyperdrive configuration**:
+# 2. Tạo đơn hàng
+curl -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": 1,
+    "items": [
+      {
+        "product_id": 1,
+        "quantity": 2,
+        "unit_price": 25.99
+      }
+    ],
+    "shipping_address": "123 Đường ABC, TP.HCM",
+    "payment_method": "credit_card"
+  }'
+```
 
-   ```sh
-   npx wrangler hyperdrive create my-hyperdrive-config --connection-string="postgres://user:password@hostname:port/dbname"
-   ```
+## 🏛️ Database Design
 
-   This command will return the Hyperdrive ID that you'll need for your configuration.
+**Mỗi service có database riêng biệt (SQLite):**
 
-2. **Configure Hyperdrive in wrangler.jsonc**:
+- **User DB**: `users`, `user_sessions`
+- **Product DB**: `products`, `stock_reservations` 
+- **Payment DB**: `payments`, `payment_transactions`
+- **Order DB**: `orders`, `order_items`, `order_saga_state`
 
-   ```json
-   "hyperdrive": [
-     {
-       "binding": "HYPERDRIVE",  // Name used to access the binding in your code
-       "id": "YOUR_HYPERDRIVE_ID",  // ID from the create command
-       "localConnectionString": "postgresql://myuser:mypassword@localhost:5432/mydatabase"  // Local dev connection
-     }
-   ]
-   ```
+## 🔧 Tính năng nâng cao
 
-3. **Access in your code**:
+### 📦 Stock Reservation System
+- Temporary reservations (15 phút expiration)
+- Automatic cleanup expired reservations
+- Concurrent access handling
 
-   ```javascript
-   // Example from this project
-   if (c.env.HYPERDRIVE) {
-     const sql = postgres(c.env.HYPERDRIVE.connectionString);
-     // Use SQL client
-   }
-   ```
+### 💳 Payment Processing  
+- Two-phase commit (Authorize → Capture)
+- Gateway simulation với failure scenarios
+- Transaction audit trail
 
-4. **Fallback handling**: This application automatically falls back to mock data if:
-   - Hyperdrive binding is not configured
-   - Database connection fails for any reason
+### 🌐 API Gateway Features
+- Circuit breaker pattern
+- Rate limiting (100 req/min per IP)
+- Request/response logging với timing
+- Service discovery và load balancing
+- Health monitoring tất cả services
 
-For a more detailed walkthrough, see the [Hyperdrive documentation](https://developers.cloudflare.com/hyperdrive/configuration/connect-to-postgres/).
+## 🚀 Production Features
 
-### More on Docker's Use in Local Development
+- **Scalability**: Mỗi service scale độc lập
+- **Resilience**: Fault tolerance với compensation
+- **Monitoring**: Health checks, logging, metrics
+- **Security**: Input validation, rate limiting
+- **Testing**: 60%+ test coverage với comprehensive scenarios
 
-When developing locally with Hyperdrive, you **must** use the Docker setup provided. This is because Hyperdrive's local dev mode requires a database running on localhost with the exact configuration specified in `localConnectionString`.
+## 📁 Cấu trúc Project
 
-The Docker setup in this template ensures the PostgreSQL instance is properly configured to work with Hyperdrive locally. The container automatically runs `init.sql` to create tables and load sample data.
+```
+├── services/
+│   ├── user-service/       # User management & auth
+│   ├── product-service/    # Product & inventory
+│   ├── payment-service/    # Payment processing  
+│   └── order-service/      # Order orchestration
+├── api-gateway/            # API Gateway & routing
+├── contract-tests/         # Inter-service contracts
+├── coverage/              # Test coverage reports
+└── README.md              # Documentation
+```
 
-While remote database use in local dev with Hyperdrive is not currently supported, it is being worked on.
+## 🎯 Design Principles
 
-## Ways to Deploy
+- **Domain-Driven Design**: Services theo business domains
+- **Database per Service**: Không chia sẻ database
+- **Saga Pattern**: Distributed transaction management
+- **Event-Driven**: Loose coupling giữa services
+- **API-First**: Contract-driven development
+- **Test-Driven**: Comprehensive test coverage
 
-There are two different ways to deploy this application: Full Experience and Demo Mode.
+---
 
-### Option 1: With Database (Full Experience)
-
-1. Run `npm i`
-2. Sign up for a PostgreSQL provider and create a database
-   - Quickstart options: [Supabase](https://supabase.com/), [Neon](https://neon.tech/)
-3. Load the sample data using the provided SQL script:
-   - The `/init.sql` file contains all database schema and sample data
-   - You can either:
-     - Copy and paste the contents into your database provider's SQL editor
-     - Or use a command line tool like `psql`: `psql -h hostname -U username -d dbname -f init.sql`
-4. Create a Hyperdrive connection by running:
-   ```sh
-   npx wrangler hyperdrive create <YOUR_CONFIG_NAME> --connection-string="<postgres://user:password@HOSTNAME_OR_IP_ADDRESS:PORT/database_name>"
-   ```
-5. Uncomment and update the Hyperdrive binding in `wrangler.jsonc` with the ID from step 4:
-   ```json
-   "hyperdrive": [
-     {
-       "binding": "HYPERDRIVE",
-       "id": "YOUR_HYPERDRIVE_ID",
-       "localConnectionString": "postgresql://myuser:mypassword@localhost:5432/mydatabase"
-     }
-   ]
-   ```
-6. Deploy with `npm run deploy`
-
-### Option 2: Without Database (Demo Mode)
-
-1. Run `npm i`
-2. Keep the Hyperdrive binding commented out in `wrangler.jsonc` (this is the default)
-3. Deploy with `npm run deploy`
-4. The app will automatically use mock data instead of a real database
-
-## Resources
-
-- [Neon PostgreSQL with Cloudflare Workers and Hyperdrive](https://developers.cloudflare.com/hyperdrive/examples/neon/)
-- [Cloudflare Vite Plugin](https://www.npmjs.com/package/@cloudflare/vite-plugin)
-- [Cloudflare Hyperdrive Documentation](https://developers.cloudflare.com/hyperdrive/get-started/)
-- [Hono - Fast, Lightweight, Web Framework for Cloudflare Workers](https://hono.dev/docs/getting-started/cloudflare-workers)
-- [Workers Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement/)
-# SGU_CNPM_FoodDelivery
+**🚀 Ready to run in production với Docker, Kubernetes, hoặc cloud platforms!**
