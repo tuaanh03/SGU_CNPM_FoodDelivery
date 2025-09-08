@@ -1,5 +1,5 @@
 // Test setup file
-import { jest } from '@jest/globals';
+
 
 // Mock console methods in tests to avoid noise
 global.console = {

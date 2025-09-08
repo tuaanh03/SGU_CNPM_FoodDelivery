@@ -4,6 +4,7 @@
   "description": "Microservices architecture with 4 services",
   "type": "module",
   "scripts": {
+    "dev": "npm run start:all",
     "start:user": "node services/user-service/server.js",
     "start:product": "node services/product-service/server.js",
     "start:payment": "node services/payment-service/server.js",
@@ -35,7 +36,10 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
     "@jest/globals": "^29.7.0",
+    "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
     "supertest": "^6.3.3"

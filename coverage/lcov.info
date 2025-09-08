@@ -667,15 +667,6 @@ BRF:6
 BRH:0
 end_of_record
 TN:
-SF:services/payment-service/database/database.js
-FNF:0
-FNH:0
-LF:0
-LH:0
-BRF:0
-BRH:0
-end_of_record
-TN:
 SF:services/payment-service/services/paymentService.js
 FN:2,(anonymous_0)
 FN:6,(anonymous_1)
