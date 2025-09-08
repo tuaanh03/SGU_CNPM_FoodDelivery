@@ -22,7 +22,20 @@ productRouter.get("/", async (c) => {
       return c.json({ products: filteredProducts });
     }
 
-    const products = [];
+    const sql = c.env.SQL;
+    const isActive = active === 'true';
+    let query;
+    if (category && active !== undefined) {
+      query = sql`SELECT * FROM products WHERE category = ${category} AND is_active = ${isActive}`;
+    } else if (category) {
+      query = sql`SELECT * FROM products WHERE category = ${category}`;
+    } else if (active !== undefined) {
+      query = sql`SELECT * FROM products WHERE is_active = ${isActive}`;
+    } else {
+      query = sql`SELECT * FROM products`;
+    }
+
+    const products = await query;
     return c.json({ products });
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -38,27 +51,16 @@ productRouter.get("/:id", async (c) => {
     if (!c.env?.DB_AVAILABLE) {
       const mockProduct = mockProducts.find(product => product.id === id);
       if (!mockProduct) {
-        if (id > 100) {
-          const dynamicMockProduct = {
-            id: id,
-            name: `Product ${id}`,
-            description: `Description for Product ${id}`,
-            price: 29.99,
-            category: "electronics",
-            stock_quantity: 10,
-            image_url: null,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          return c.json({ product: dynamicMockProduct });
-        }
         return c.json({ error: "Product not found" }, 404);
       }
       return c.json({ product: mockProduct });
     }
 
-    return c.json({ error: "Product not found" }, 404);
+    const [product] = await c.env.SQL`SELECT * FROM products WHERE id = ${id}`;
+    if (!product) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+    return c.json({ product });
   } catch (error) {
     console.error("Error fetching product:", error);
     return c.json({ error: "Failed to fetch product" }, 500);
@@ -91,6 +93,8 @@ productRouter.post("/", async (c) => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+
+      mockProducts.push(newProduct);
 
       return c.json({
         message: "Product created successfully",
@@ -125,13 +129,22 @@ productRouter.put("/:id", async (c) => {
         updated_at: new Date().toISOString()
       };
 
+      mockProducts[productIndex] = updatedProduct;
+
       return c.json({
         message: "Product updated successfully",
         product: updatedProduct
       });
     }
 
-    return c.json({ error: "Product not found" }, 404);
+    const [product] = await c.env.SQL`SELECT * FROM products WHERE id = ${id}`;
+    if (!product) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+    return c.json({
+      message: "Product updated successfully",
+      product
+    });
   } catch (error) {
     console.error("Error updating product:", error);
     return c.json({ error: "Failed to update product" }, 500);
@@ -152,19 +165,7 @@ productRouter.put("/:id/stock", async (c) => {
     if (!c.env?.DB_AVAILABLE) {
       const productIndex = mockProducts.findIndex(product => product.id === id);
       if (productIndex === -1) {
-        const dynamicMockProduct = {
-          id: id,
-          name: `Product ${id}`,
-          description: `Description for Product ${id}`,
-          price: 29.99,
-          category: "electronics",
-          stock_quantity: parseInt(quantity),
-          image_url: null,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        return c.json({ product: dynamicMockProduct });
+        return c.json({ error: "Product not found" }, 404);
       }
 
       const updatedProduct = {
@@ -173,10 +174,16 @@ productRouter.put("/:id/stock", async (c) => {
         updated_at: new Date().toISOString()
       };
 
+      mockProducts[productIndex] = updatedProduct;
+
       return c.json({ product: updatedProduct });
     }
 
-    return c.json({ error: "Product not found" }, 404);
+    const [product] = await c.env.SQL`SELECT * FROM products WHERE id = ${id}`;
+    if (!product) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+    return c.json({ product });
   } catch (error) {
     console.error("Error updating product stock:", error);
     return c.json({ error: "Failed to update product stock" }, 500);
@@ -194,10 +201,16 @@ productRouter.delete("/:id", async (c) => {
         return c.json({ error: "Product not found" }, 404);
       }
 
+      mockProducts.splice(productIndex, 1);
+
       return c.json({ message: "Product deleted successfully" });
     }
 
-    return c.json({ error: "Product not found" }, 404);
+    const result = await c.env.SQL`DELETE FROM products WHERE id = ${id}`;
+    if (!result || (Array.isArray(result) ? result.length === 0 : result.count === 0)) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+    return c.json({ message: "Product deleted successfully" });
   } catch (error) {
     console.error("Error deleting product:", error);
     return c.json({ error: "Failed to delete product" }, 500);

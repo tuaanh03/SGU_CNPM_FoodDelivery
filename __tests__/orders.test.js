@@ -19,7 +19,7 @@ describe('Order Service Tests', () => {
   describe('GET /api/orders', () => {
     test('should return mock orders when DB not available', async () => {
       const req = new Request('http://localhost/api/orders');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -38,7 +38,7 @@ describe('Order Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockOrders.filter(o => o.user_id === 1));
 
       const req = new Request('http://localhost/api/orders?user_id=1');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -56,7 +56,7 @@ describe('Order Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockOrders.filter(o => o.status === 'pending'));
 
       const req = new Request('http://localhost/api/orders?status=pending');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -68,7 +68,7 @@ describe('Order Service Tests', () => {
   describe('GET /api/orders/:id', () => {
     test('should return order with items', async () => {
       const req = new Request('http://localhost/api/orders/1');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -85,7 +85,7 @@ describe('Order Service Tests', () => {
         .mockResolvedValueOnce([]); // For items query
 
       const req = new Request('http://localhost/api/orders/999');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -110,7 +110,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(orderData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(201);
@@ -131,7 +131,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(orderData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -150,7 +150,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(orderData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -171,7 +171,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(orderData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -209,7 +209,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(orderData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(201);
@@ -232,7 +232,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(statusData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -248,7 +248,7 @@ describe('Order Service Tests', () => {
         body: JSON.stringify(statusData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -271,7 +271,7 @@ describe('Order Service Tests', () => {
         method: 'DELETE'
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -287,7 +287,7 @@ describe('Order Service Tests', () => {
         method: 'DELETE'
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);

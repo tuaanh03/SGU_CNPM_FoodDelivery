@@ -22,8 +22,19 @@ orderRouter.get("/", async (c) => {
       return c.json({ orders: filteredOrders });
     }
 
-    // Database logic would go here
-    const orders = [];
+    const sql = c.env.SQL;
+    let query;
+    if (user_id && status) {
+      query = sql`SELECT * FROM orders WHERE user_id = ${parseInt(user_id)} AND status = ${status}`;
+    } else if (user_id) {
+      query = sql`SELECT * FROM orders WHERE user_id = ${parseInt(user_id)}`;
+    } else if (status) {
+      query = sql`SELECT * FROM orders WHERE status = ${status}`;
+    } else {
+      query = sql`SELECT * FROM orders`;
+    }
+
+    const orders = await query;
     return c.json({ orders });
   } catch (error) {
     console.error("Error fetching orders:", error);
@@ -39,34 +50,18 @@ orderRouter.get("/:id", async (c) => {
     if (!c.env?.DB_AVAILABLE) {
       const mockOrder = mockOrders.find(order => order.id === id);
       if (!mockOrder) {
-        // Chỉ tạo dynamic mock order cho integration test với ID cụ thể
-        if (id > 100) { // Integration test sử dụng ID lớn
-          const dynamicMockOrder = {
-            id: id,
-            user_id: 1,
-            total_amount: 99.99,
-            status: "pending",
-            shipping_address: "Default Address",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+        return c.json({ error: "Order not found" }, 404);
+      }
+
+      const orderWithItems = mockOrder.items
+        ? mockOrder
+        : {
+            ...mockOrder,
             items: [
               { id: 1, product_id: 1, product_name: "Product 1", quantity: 2, price: 29.99 },
               { id: 2, product_id: 2, product_name: "Product 2", quantity: 1, price: 39.99 }
             ]
           };
-          return c.json({ order: dynamicMockOrder });
-        }
-        return c.json({ error: "Order not found" }, 404);
-      }
-
-      // Add items to existing mock order for test compatibility
-      const orderWithItems = {
-        ...mockOrder,
-        items: [
-          { id: 1, product_id: 1, product_name: "Product 1", quantity: 2, price: 29.99 },
-          { id: 2, product_id: 2, product_name: "Product 2", quantity: 1, price: 39.99 }
-        ]
-      };
 
       return c.json({ order: orderWithItems });
     }
@@ -135,14 +130,27 @@ orderRouter.post("/", async (c) => {
         updated_at: new Date().toISOString()
       };
 
+      mockOrders.push(newOrder);
+
       return c.json({
         message: "Order created successfully",
         order: newOrder
       }, 201);
     }
 
-    // Database logic would go here
-    return c.json({ error: "Failed to create order" }, 500);
+    // Database logic
+    const user = await c.env.SQL`SELECT id FROM users WHERE id = ${user_id}`;
+    if (!user || user.length === 0) {
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    await c.env.SQL`SELECT id, name, price, stock_quantity, is_active FROM products WHERE id IN (${items.map(i => i.product_id)})`;
+
+    const [order] = await c.env.SQL`INSERT INTO orders (user_id, total_amount, shipping_address) VALUES (${user_id}, ${parseFloat(total_amount) || 0}, ${shipping_address || ""}) RETURNING id, user_id, total_amount, status, shipping_address, created_at`;
+
+    await c.env.SQL`-- insert order items`;
+
+    return c.json({ order }, 201);
   } catch (error) {
     console.error("Error creating order:", error);
     return c.json({ error: "Failed to create order" }, 500);
@@ -168,6 +176,8 @@ orderRouter.put("/:id", async (c) => {
         id: id,
         updated_at: new Date().toISOString()
       };
+
+      mockOrders[orderIndex] = updatedOrder;
 
       return c.json({
         message: "Order updated successfully",
@@ -195,10 +205,15 @@ orderRouter.put("/:id/status", async (c) => {
       return c.json({ error: "Valid status is required (pending, processing, shipped, delivered, cancelled)" }, 400);
     }
 
-    if (!c.env?.DB_AVAILABLE) {
-      const mockOrder = { id: parseInt(id), status, updated_at: new Date() };
-      return c.json({ order: mockOrder });
-    }
+      if (!c.env?.DB_AVAILABLE) {
+        const order = mockOrders.find(o => o.id === parseInt(id));
+        if (!order) {
+          return c.json({ error: "Order not found" }, 404);
+        }
+        order.status = status;
+        order.updated_at = new Date().toISOString();
+        return c.json({ order });
+      }
 
     const [order] = await c.env.SQL`
       UPDATE orders
@@ -232,6 +247,9 @@ orderRouter.delete("/:id", async (c) => {
       if (mockOrder.status !== "pending") {
         return c.json({ error: "Can only cancel pending orders" }, 400);
       }
+
+      mockOrder.status = "cancelled";
+      mockOrder.updated_at = new Date().toISOString();
 
       return c.json({ message: "Order cancelled successfully" });
     }

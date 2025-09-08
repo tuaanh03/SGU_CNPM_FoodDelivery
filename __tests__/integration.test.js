@@ -41,7 +41,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(userData)
       });
 
-      const userRes = await app.request(userReq, mockEnv);
+      const userRes = await app.fetch(userReq, mockEnv);
       const userDataRes = await userRes.json();
 
       expect(userRes.status).toBe(201);
@@ -63,7 +63,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(product1Data)
       });
 
-      const product1Res = await app.request(product1Req, mockEnv);
+      const product1Res = await app.fetch(product1Req, mockEnv);
       const product1DataRes = await product1Res.json();
 
       expect(product1Res.status).toBe(201);
@@ -83,7 +83,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(product2Data)
       });
 
-      const product2Res = await app.request(product2Req, mockEnv);
+      const product2Res = await app.fetch(product2Req, mockEnv);
       const product2DataRes = await product2Res.json();
 
       expect(product2Res.status).toBe(201);
@@ -105,7 +105,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(orderData)
       });
 
-      const orderRes = await app.request(orderReq, mockEnv);
+      const orderRes = await app.fetch(orderReq, mockEnv);
       const orderDataRes = await orderRes.json();
 
       expect(orderRes.status).toBe(201);
@@ -126,7 +126,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const paymentRes = await app.request(paymentReq, mockEnv);
+      const paymentRes = await app.fetch(paymentReq, mockEnv);
       const paymentDataRes = await paymentRes.json();
 
       expect(paymentRes.status).toBe(201);
@@ -141,7 +141,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify({ payment_status: 'completed' })
       });
 
-      const statusUpdateRes = await app.request(statusUpdateReq, mockEnv);
+      const statusUpdateRes = await app.fetch(statusUpdateReq, mockEnv);
       const statusUpdateDataRes = await statusUpdateRes.json();
 
       expect(statusUpdateRes.status).toBe(200);
@@ -149,15 +149,15 @@ describe('Integration Tests - Full Workflow', () => {
 
       // 6. Verify we can retrieve all data
       const getUserReq = new Request(`http://localhost/api/users/${userId}`);
-      const getUserRes = await app.request(getUserReq, mockEnv);
+      const getUserRes = await app.fetch(getUserReq, mockEnv);
       expect(getUserRes.status).toBe(200);
 
       const getOrderReq = new Request(`http://localhost/api/orders/${orderId}`);
-      const getOrderRes = await app.request(getOrderReq, mockEnv);
+      const getOrderRes = await app.fetch(getOrderReq, mockEnv);
       expect(getOrderRes.status).toBe(200);
 
       const getPaymentReq = new Request(`http://localhost/api/payments/${paymentId}`);
-      const getPaymentRes = await app.request(getPaymentReq, mockEnv);
+      const getPaymentRes = await app.fetch(getPaymentReq, mockEnv);
       expect(getPaymentRes.status).toBe(200);
     });
 
@@ -174,7 +174,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const paymentRes = await app.request(paymentReq, mockEnv);
+      const paymentRes = await app.fetch(paymentReq, mockEnv);
       const paymentDataRes = await paymentRes.json();
       const paymentId = paymentDataRes.payment.id;
 
@@ -185,7 +185,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify({ payment_status: 'completed' })
       });
 
-      await app.request(completeReq, mockEnv);
+      await app.fetch(completeReq, mockEnv);
 
       // Process refund
       const refundReq = new Request(`http://localhost/api/payments/${paymentId}/refund`, {
@@ -194,7 +194,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify({ reason: 'Customer request' })
       });
 
-      const refundRes = await app.request(refundReq, mockEnv);
+      const refundRes = await app.fetch(refundReq, mockEnv);
       const refundDataRes = await refundRes.json();
 
       expect(refundRes.status).toBe(200);
@@ -215,7 +215,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(productData)
       });
 
-      const createRes = await app.request(createReq, mockEnv);
+      const createRes = await app.fetch(createReq, mockEnv);
       const createDataRes = await createRes.json();
       const productId = createDataRes.product.id;
 
@@ -226,7 +226,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify({ quantity: 20 })
       });
 
-      const stockUpdateRes = await app.request(stockUpdateReq, mockEnv);
+      const stockUpdateRes = await app.fetch(stockUpdateReq, mockEnv);
       const stockUpdateDataRes = await stockUpdateRes.json();
 
       expect(stockUpdateRes.status).toBe(200);
@@ -234,7 +234,7 @@ describe('Integration Tests - Full Workflow', () => {
 
       // Verify product can be retrieved with updated stock
       const getProductReq = new Request(`http://localhost/api/products/${productId}`);
-      const getProductRes = await app.request(getProductReq, mockEnv);
+      const getProductRes = await app.fetch(getProductReq, mockEnv);
       const getProductDataRes = await getProductRes.json();
 
       expect(getProductRes.status).toBe(200);
@@ -258,7 +258,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(orderData)
       });
 
-      const orderRes = await app.request(orderReq, mockEnv);
+      const orderRes = await app.fetch(orderReq, mockEnv);
 
       // Should work with mock data
       expect(orderRes.status).toBe(201);
@@ -277,7 +277,7 @@ describe('Integration Tests - Full Workflow', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const paymentRes = await app.request(paymentReq, mockEnv);
+      const paymentRes = await app.fetch(paymentReq, mockEnv);
 
       // Should work with mock data
       expect(paymentRes.status).toBe(201);

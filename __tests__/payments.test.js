@@ -19,7 +19,7 @@ describe('Payment Service Tests', () => {
   describe('GET /api/payments', () => {
     test('should return mock payments when DB not available', async () => {
       const req = new Request('http://localhost/api/payments');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -38,7 +38,7 @@ describe('Payment Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockPayments.filter(p => p.order_id === 1));
 
       const req = new Request('http://localhost/api/payments?order_id=1');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -56,7 +56,7 @@ describe('Payment Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockPayments.filter(p => p.payment_status === 'completed'));
 
       const req = new Request('http://localhost/api/payments?status=completed');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -68,7 +68,7 @@ describe('Payment Service Tests', () => {
   describe('GET /api/payments/:id', () => {
     test('should return payment by ID', async () => {
       const req = new Request('http://localhost/api/payments/1');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -81,7 +81,7 @@ describe('Payment Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue([]);
 
       const req = new Request('http://localhost/api/payments/999');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -103,7 +103,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(201);
@@ -124,7 +124,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -143,7 +143,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -165,7 +165,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -189,7 +189,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(paymentData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(409);
@@ -212,7 +212,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(statusData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -228,7 +228,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(statusData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       // The current implementation doesn't validate status values
@@ -249,7 +249,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(statusData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -278,7 +278,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(refundData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -298,7 +298,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(refundData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -318,7 +318,7 @@ describe('Payment Service Tests', () => {
         body: JSON.stringify(refundData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);

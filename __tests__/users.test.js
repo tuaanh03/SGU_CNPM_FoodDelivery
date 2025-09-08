@@ -26,7 +26,7 @@ describe('User Service Tests', () => {
   describe('GET /api/users', () => {
     test('should return mock users when DB not available', async () => {
       const req = new Request('http://localhost/api/users');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -45,7 +45,7 @@ describe('User Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockUsers);
 
       const req = new Request('http://localhost/api/users');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -59,18 +59,18 @@ describe('User Service Tests', () => {
       mockEnv.SQL = jest.fn().mockRejectedValue(new Error('DB Error'));
 
       const req = new Request('http://localhost/api/users');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
-      expect(res.status).toBe(200);
-      expect(res.ok).toBe(true);
+      expect(res.status).toBe(500);
+      expect(res.ok).toBe(false);
     });
   });
 
   describe('GET /api/users/:id', () => {
     test('should return user by ID', async () => {
       const req = new Request('http://localhost/api/users/1');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -83,7 +83,7 @@ describe('User Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue([]);
 
       const req = new Request('http://localhost/api/users/999');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -107,7 +107,7 @@ describe('User Service Tests', () => {
         body: JSON.stringify(userData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(201);
@@ -128,7 +128,7 @@ describe('User Service Tests', () => {
         body: JSON.stringify(userData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -151,7 +151,7 @@ describe('User Service Tests', () => {
         body: JSON.stringify(userData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(409);
@@ -178,7 +178,7 @@ describe('User Service Tests', () => {
         body: JSON.stringify(updateData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -197,7 +197,7 @@ describe('User Service Tests', () => {
         body: JSON.stringify(updateData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -214,7 +214,7 @@ describe('User Service Tests', () => {
         method: 'DELETE'
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -229,7 +229,7 @@ describe('User Service Tests', () => {
         method: 'DELETE'
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
