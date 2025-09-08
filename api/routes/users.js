@@ -23,7 +23,6 @@ userRouter.get("/", async (c) => {
 
     return c.json({ users });
   } catch (error) {
-    console.error("Error fetching users:", error);
     return c.json({ error: "Failed to fetch users" }, 500);
   }
 });
@@ -55,7 +54,7 @@ userRouter.get("/:id", async (c) => {
 
     return c.json({ user });
   } catch (error) {
-    console.error("Error fetching user:", error);
+
     return c.json({ error: "Failed to fetch user" }, 500);
   }
 });
@@ -104,7 +103,7 @@ userRouter.post("/", async (c) => {
       throw dbError;
     }
   } catch (error) {
-    console.error("Error creating user:", error);
+
     return c.json({ error: "Failed to create user" }, 500);
   }
 });
@@ -149,7 +148,7 @@ userRouter.put("/:id", async (c) => {
 
     return c.json({ user: updatedUser });
   } catch (error) {
-    console.error("Error updating user:", error);
+
     return c.json({ error: "Failed to update user" }, 500);
   }
 });
@@ -178,7 +177,7 @@ userRouter.delete("/:id", async (c) => {
 
     return c.json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("Error deleting user:", error);
+
     return c.json({ error: "Failed to delete user" }, 500);
   }
 });
