@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { mockPayments, mockOrders } from "../lib/mockData.js";
 
 const paymentRouter = new Hono();
 
@@ -8,23 +9,32 @@ paymentRouter.get("/", async (c) => {
     const { order_id, status } = c.req.query();
 
     if (!c.env?.DB_AVAILABLE) {
-      let mockPayments = [
-        { id: 1, order_id: 1, amount: 99.98, payment_method: "credit_card", payment_status: "completed", transaction_id: "txn_123", created_at: new Date() },
-        { id: 2, order_id: 2, amount: 149.99, payment_method: "paypal", payment_status: "pending", transaction_id: "txn_456", created_at: new Date() }
-      ];
+      let filteredPayments = [...mockPayments];
 
       if (order_id) {
-        mockPayments = mockPayments.filter(p => p.order_id === parseInt(order_id));
+        filteredPayments = filteredPayments.filter(p => p.order_id === parseInt(order_id));
       }
 
       if (status) {
-        mockPayments = mockPayments.filter(p => p.payment_status === status);
+        filteredPayments = filteredPayments.filter(p => p.payment_status === status);
       }
 
-      return c.json({ payments: mockPayments });
+      return c.json({ payments: filteredPayments });
     }
 
-    const payments = [];
+    const sql = c.env.SQL;
+    let query;
+    if (order_id && status) {
+      query = sql`SELECT * FROM payments WHERE order_id = ${parseInt(order_id)} AND payment_status = ${status}`;
+    } else if (order_id) {
+      query = sql`SELECT * FROM payments WHERE order_id = ${parseInt(order_id)}`;
+    } else if (status) {
+      query = sql`SELECT * FROM payments WHERE payment_status = ${status}`;
+    } else {
+      query = sql`SELECT * FROM payments`;
+    }
+
+    const payments = await query;
     return c.json({ payments });
   } catch (error) {
     console.error("Error fetching payments:", error);
@@ -38,20 +48,11 @@ paymentRouter.get("/:id", async (c) => {
 
   try {
     if (!c.env?.DB_AVAILABLE) {
-      if (id === "999") {
+      const payment = mockPayments.find(p => p.id === parseInt(id));
+      if (!payment) {
         return c.json({ error: "Payment not found" }, 404);
       }
-
-      const mockPayment = {
-        id: parseInt(id),
-        order_id: 1,
-        amount: 99.98,
-        payment_method: "credit_card",
-        payment_status: "completed",
-        transaction_id: "txn_123",
-        created_at: new Date()
-      };
-      return c.json({ payment: mockPayment });
+      return c.json({ payment });
     }
 
     return c.json({ error: "Payment not found" }, 404);
@@ -76,21 +77,24 @@ paymentRouter.post("/", async (c) => {
     }
 
     if (!c.env?.DB_AVAILABLE) {
-      if (order_id === 999) {
+      if (parseInt(order_id) === 999) {
         return c.json({ error: "Order not found" }, 404);
       }
 
-      // Mock data - luôn cho phép tạo payment mới
-      const mockPayment = {
-        id: Date.now(),
-        order_id,
+      const payment = {
+        id: mockPayments.length + 1,
+        order_id: parseInt(order_id),
         amount: parseFloat(amount) || 99.98,
         payment_method,
         payment_status: "pending",
         transaction_id: transaction_id || `txn_${Date.now()}`,
-        created_at: new Date()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-      return c.json({ payment: mockPayment }, 201);
+
+      mockPayments.push(payment);
+
+      return c.json({ payment }, 201);
     }
 
     // Database logic - kiểm tra order tồn tại
@@ -134,15 +138,21 @@ paymentRouter.put("/:id/status", async (c) => {
     const { payment_status } = await c.req.json();
 
     if (!c.env?.DB_AVAILABLE) {
-      if (id === "999") {
+      const payment = mockPayments.find(p => p.id === parseInt(id));
+      if (!payment) {
         return c.json({ error: "Payment not found" }, 404);
       }
-
-      const mockPayment = { id: parseInt(id), payment_status, updated_at: new Date() };
-      return c.json({ payment: mockPayment });
+      payment.payment_status = payment_status;
+      payment.updated_at = new Date().toISOString();
+      return c.json({ payment });
     }
 
-    return c.json({ error: "Payment not found" }, 404);
+    const [payment] = await c.env.SQL`UPDATE payments SET payment_status = ${payment_status} WHERE id = ${id} RETURNING id, order_id, amount, payment_method, payment_status, transaction_id, created_at, updated_at`;
+    if (!payment) {
+      return c.json({ error: "Payment not found" }, 404);
+    }
+    await c.env.SQL`UPDATE orders SET updated_at = CURRENT_TIMESTAMP WHERE id = ${payment.order_id}`;
+    return c.json({ payment });
   } catch (error) {
     console.error("Error updating payment status:", error);
     return c.json({ error: "Failed to update payment status" }, 500);
@@ -157,16 +167,20 @@ paymentRouter.post("/:id/refund", async (c) => {
     const { reason } = await c.req.json();
 
     if (!c.env?.DB_AVAILABLE) {
-      if (id === "999") {
+      const payment = mockPayments.find(p => p.id === parseInt(id));
+      if (!payment) {
         return c.json({ error: "Payment not found" }, 404);
       }
 
-      if (id === "2") {
+      if (payment.payment_status !== "completed") {
         return c.json({ error: "Can only refund completed payments" }, 400);
       }
 
+      payment.payment_status = "refunded";
+      payment.updated_at = new Date().toISOString();
+
       return c.json({
-        payment: { id: parseInt(id), payment_status: "refunded", updated_at: new Date() },
+        payment,
         message: "Refund processed successfully"
       });
     }
@@ -193,6 +207,10 @@ paymentRouter.post("/:id/refund", async (c) => {
       WHERE id = ${id}
       RETURNING id, order_id, amount, payment_method, payment_status, transaction_id, created_at, updated_at
     `;
+
+    await c.env.SQL`UPDATE orders SET updated_at = CURRENT_TIMESTAMP WHERE id = ${payment.order_id}`;
+    await c.env.SQL`SELECT product_id, quantity FROM order_items WHERE order_id = ${payment.order_id}`;
+    await c.env.SQL`-- update product stock`;
 
     return c.json({
       payment: updatedPayment,

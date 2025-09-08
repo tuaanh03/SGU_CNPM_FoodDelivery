@@ -19,7 +19,7 @@ describe('Product Service Tests', () => {
   describe('GET /api/products', () => {
     test('should return mock products when DB not available', async () => {
       const req = new Request('http://localhost/api/products');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -38,7 +38,7 @@ describe('Product Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockProducts.filter(p => p.category === 'electronics'));
 
       const req = new Request('http://localhost/api/products?category=electronics');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -56,7 +56,7 @@ describe('Product Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue(mockProducts.filter(p => p.is_active));
 
       const req = new Request('http://localhost/api/products?active=true');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -68,7 +68,7 @@ describe('Product Service Tests', () => {
   describe('GET /api/products/:id', () => {
     test('should return product by ID', async () => {
       const req = new Request('http://localhost/api/products/1');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -81,7 +81,7 @@ describe('Product Service Tests', () => {
       mockEnv.SQL = jest.fn().mockResolvedValue([]);
 
       const req = new Request('http://localhost/api/products/999');
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -105,7 +105,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(productData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(201);
@@ -126,7 +126,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(productData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -145,7 +145,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(productData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -173,7 +173,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(updateData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -196,7 +196,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(updateData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(404);
@@ -219,7 +219,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(stockData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -235,7 +235,7 @@ describe('Product Service Tests', () => {
         body: JSON.stringify(stockData)
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(400);
@@ -252,7 +252,7 @@ describe('Product Service Tests', () => {
         method: 'DELETE'
       });
 
-      const res = await app.request(req, mockEnv);
+      const res = await app.fetch(req, mockEnv);
       const data = await res.json();
 
       expect(res.status).toBe(200);
